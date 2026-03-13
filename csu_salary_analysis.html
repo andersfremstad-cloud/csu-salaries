@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSU Faculty Salary vs. Inflation — CSU-AAUP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0f0f0;
+      font-family: 'Merriweather', Georgia, serif;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER BANNER ── */
+    .header-banner {
+      background: #c60c30;
+      padding: 36px 24px 32px;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.70);
+      font-family: Arial, sans-serif;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(20px, 3.5vw, 34px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: #ffffff;
+      margin-bottom: 14px;
+      font-family: 'Merriweather', Georgia, serif;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.88);
+      max-width: 660px;
+      line-height: 1.8;
+      font-style: italic;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+    }
+
+    /* ── PANELS ── */
+    .panel {
+      background: #ffffff;
+      border: 1px solid #dde1e6;
+      border-top: 3px solid #c60c30;
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .panel-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #6b7280;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ── SLIDERS ── */
+    .sliders {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: center;
+    }
+    .slider-group { flex: 1 1 240px; }
+    .slider-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #6b7280;
+      font-family: Arial, sans-serif;
+      margin-bottom: 8px;
+    }
+    input[type=range] {
+      width: 100%;
+      cursor: pointer;
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+      border: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #dde1e6;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      cursor: pointer;
+    }
+    #salarySlider::-webkit-slider-thumb { background: #1a7a3c; }
+    #salarySlider::-moz-range-thumb     { background: #1a7a3c; }
+    #yearSlider::-webkit-slider-thumb   { background: #c60c30; }
+    #yearSlider::-moz-range-thumb       { background: #c60c30; }
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 4px;
+      font-family: Arial, sans-serif;
+    }
+    .slider-value { text-align: center; min-width: 120px; }
+    .slider-value .big {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #1a1a1a;
+      font-family: 'Merriweather', Georgia, serif;
+    }
+    .slider-value .small {
+      font-size: 10px;
+      color: #9ca3af;
+      font-family: Arial, sans-serif;
+      margin-top: 3px;
+    }
+
+    /* ── CARDS ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #dde1e6;
+      border-top: 3px solid #c60c30;
+      border-radius: 4px;
+      padding: 16px 18px;
+    }
+    .card-label {
+      font-size: 10px;
+      color: #6b7280;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: Arial, sans-serif;
+      margin-bottom: 6px;
+    }
+    .card-value {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-family: 'Merriweather', Georgia, serif;
+    }
+    .card-sub {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 5px;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ── CHARTS ── */
+    .chart-wrap { position: relative; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+    }
+    th {
+      text-align: left;
+      padding: 7px 10px;
+      color: #6b7280;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      font-size: 10px;
+      text-transform: uppercase;
+      border-bottom: 2px solid #dde1e6;
+      white-space: nowrap;
+    }
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #374151;
+    }
+    tr:nth-child(even) td { background: #f9fafb; }
+
+    /* ── FOOTNOTES ── */
+    .footnotes {
+      font-size: 11px;
+      color: #9ca3af;
+      line-height: 1.75;
+      font-family: Arial, sans-serif;
+    }
+    .footnotes p { margin-bottom: 5px; }
+    .footnotes strong { color: #6b7280; }
+  </style>
+</head>
+<body>
+
+<!-- RED HEADER BANNER -->
+<div class="header-banner">
+  <div class="header-inner">
+    <div class="eyebrow">Colorado State University &middot; American Association of University Professors</div>
+    <h1>Have CSU Faculty Raises Kept Pace with Inflation?</h1>
+    <p class="subtitle">Compare CSU faculty&#8217;s salary increases to the increase in the cost of living. Raises sourced from CSU&#8217;s official 10-Year Salary Increase Summary; inflation from the Denver-Aurora-Lakewood CPI-U.</p>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- SLIDERS -->
+  <div class="panel">
+    <div class="panel-title">Adjust Parameters</div>
+    <div class="sliders">
+      <div class="slider-group">
+        <label class="slider-label" for="salarySlider">Starting Salary</label>
+        <input type="range" id="salarySlider" min="45000" max="130000" step="1000" value="72000" />
+        <div class="slider-ends"><span>$45k</span><span>$130k</span></div>
+      </div>
+      <div class="slider-value">
+        <div class="big" id="salaryDisplay">$72,000</div>
+        <div class="small">Starting salary</div>
+      </div>
+
+      <div class="slider-group">
+        <label class="slider-label" for="yearSlider">Starting Academic Year</label>
+        <input type="range" id="yearSlider" min="0" max="12" step="1" value="4" />
+        <div class="slider-ends"><span>2012&#8211;13</span><span>2024&#8211;25</span></div>
+      </div>
+      <div class="slider-value">
+        <div class="big" id="yearDisplay">2016&#8211;17</div>
+        <div class="small">Start year</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="cards" id="cards"></div>
+
+  <!-- LINE CHART -->
+  <div class="panel">
+    <div class="panel-title">Salary Trajectory &middot; Likely Salary vs. Inflation Equivalent Salary</div>
+    <div class="chart-wrap" style="height:320px">
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <!-- BAR CHART -->
+  <div class="panel">
+    <div class="panel-title">CSU Raise vs. Denver CPI</div>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="panel">
+    <div class="panel-title">Year-by-Year Detail</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fiscal Year</th>
+            <th>CSU Raise</th>
+            <th>Denver CPI</th>
+            <th>Real &Delta;</th>
+            <th>Likely Salary</th>
+            <th>Inflation Equiv.<br>Salary</th>
+            <th>Real Value<br>Change ($)</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOOTNOTES -->
+  <div class="footnotes">
+    <p><strong>CSU raises:</strong> Faculty/Admin Professional pool from CSU Office of Budgets 10-Year Salary Summary (official document). These are pool averages &mdash; individual raises may differ.</p>
+    <p><strong>Inflation data:</strong> Denver-Aurora-Lakewood CPI-U (BLS), the standard Colorado inflation proxy. Annual averages used for 2021&ndash;2025; Dec-to-Dec figures for 2015&ndash;2020. 2025 is a legislative forecast.</p>
+    <p><strong>FY2025&ndash;26:</strong> 1% raise applies to employees earning below $100k only (bottom 75% per CSU policy). Faculty earning &ge;$100k before this raise receive no increase.</p>
+    <p><strong>New hires:</strong> Start-year salary is the negotiated hire salary. Neither the raise pool nor inflation is applied in the start year; both begin accumulating in the following fiscal year.</p>
+    <p><strong>FY2021&ndash;22 note:</strong> The 3% raise had a 6-month delay for faculty/AP, so the actual within-year purchasing power impact was lower (~1.5%), though the full 3% compounded into the base going forward.</p>
+  </div>
+
+</div><!-- end .page -->
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+var TIMELINE = [
+  { fy: "FY12-13", label: "FY2012\u201313", csuRate: 0.030,  cpiRate: 0.01943, note: null },
+  { fy: "FY13-14", label: "FY2013\u201314", csuRate: 0.030,  cpiRate: 0.02771, note: null },
+  { fy: "FY14-15", label: "FY2014\u201315", csuRate: 0.025,  cpiRate: 0.02777, note: null },
+  { fy: "FY15-16", label: "FY2015\u201316", csuRate: 0.020,  cpiRate: 0.01176, note: null },
+  { fy: "FY16-17", label: "FY2016\u201317", csuRate: 0.018,  cpiRate: 0.02772, note: null },
+  { fy: "FY17-18", label: "FY2017\u201318", csuRate: 0.0225, cpiRate: 0.03386, note: null },
+  { fy: "FY18-19", label: "FY2018\u201319", csuRate: 0.025,  cpiRate: 0.02731, note: null },
+  { fy: "FY19-20", label: "FY2019\u201320", csuRate: 0.04,   cpiRate: 0.01924, note: null },
+  { fy: "FY20-21", label: "FY2020\u201321", csuRate: 0.00,   cpiRate: 0.01951, note: "COVID freeze \u2014 no raises" },
+  { fy: "FY21-22", label: "FY2021\u201322", csuRate: 0.03,   cpiRate: 0.03541, note: "6-month implementation delay" },
+  { fy: "FY22-23", label: "FY2022\u201323", csuRate: 0.03,   cpiRate: 0.08011, note: null },
+  { fy: "FY23-24", label: "FY2023\u201324", csuRate: 0.05,   cpiRate: 0.05215, note: null },
+  { fy: "FY24-25", label: "FY2024\u201325", csuRate: 0.01,   cpiRate: 0.02271, note: null },
+  { fy: "FY25-26", label: "FY2025\u201326", csuRate: 0.01,   cpiRate: 0.02356, note: "Bottom 75% of earners only" }
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency", currency: "USD", maximumFractionDigits: 0
+  }).format(n);
+}
+function pct(n) { return (n * 100).toFixed(2) + "%"; }
+function pp(n)  { return (n >= 0 ? "+" : "") + (n * 100).toFixed(2) + "%"; }
+function esc(s) { return s ? s.replace(/&/g,"&amp;").replace(/</g,"&lt;") : "\u2014"; }
+
+// ── BUILD DATA ────────────────────────────────────────────────────────────────
+function buildData(startSalary, startYearIdx) {
+  var csuSal = startSalary;
+  var infSal = startSalary;
+  var slice  = TIMELINE.slice(startYearIdx);
+  var rows   = [];
+
+  for (var i = 0; i < slice.length; i++) {
+    var entry         = slice[i];
+    var isStartYear   = (i === 0);
+    var effectiveRate = isStartYear ? 0 : (entry.csuRate || 0);
+    var note = isStartYear
+      ? "Start year \u2014 no raise (negotiated salary)"
+      : (entry.note || null);
+
+    // FY25-26 threshold: only bottom 75% (approx. <$100k) get the raise
+    if (!isStartYear && entry.fy === "FY25-26" && csuSal >= 100000) {
+      effectiveRate = 0;
+      note = "Salary \u2265 $100k \u2014 raise does not apply (top 25% per policy)";
+    }
+
+    csuSal = csuSal * (1 + effectiveRate);
+    infSal = infSal * (isStartYear ? 1 : (1 + entry.cpiRate));
+
+    rows.push({
+      label:       entry.label,
+      fy:          entry.fy,
+      csuSalary:   csuSal,
+      infSalary:   infSal,
+      csuRate:     effectiveRate,
+      cpiRate:     isStartYear ? 0 : entry.cpiRate,
+      gap:         csuSal - infSal,
+      note:        note,
+      isStartYear: isStartYear
+    });
+  }
+  return rows;
+}
+
+// ── CHART SETUP ───────────────────────────────────────────────────────────────
+var lineChartInst = null;
+var barChartInst  = null;
+
+var axisStyle = {
+  ticks: { color: "#9ca3af", font: { family: "Arial, sans-serif", size: 10 } },
+  grid:  { color: "#f0f0f0" }
+};
+
+var tooltipStyle = {
+  backgroundColor: "#ffffff",
+  borderColor: "#dde1e6",
+  borderWidth: 1,
+  titleColor: "#1a1a1a",
+  bodyColor:  "#374151"
+};
+
+function initCharts() {
+  Chart.defaults.color = "#6b7280";
+  Chart.defaults.font.family = "Arial, sans-serif";
+
+  lineChartInst = new Chart(document.getElementById("lineChart"), {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: "Likely Salary",
+          data: [],
+          borderColor: "#1a7a3c",
+          backgroundColor: "rgba(26,122,60,0.08)",
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: "#1a7a3c",
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 1.5
+        },
+        {
+          label: "Inflation Equivalent Salary",
+          data: [],
+          borderColor: "#c60c30",
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: "#c60c30",
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 200 },
+      plugins: {
+        legend: {
+          labels: { color: "#374151", font: { family: "Arial, sans-serif", size: 11 }, boxWidth: 20, padding: 16 }
+        },
+        tooltip: Object.assign({}, tooltipStyle, {
+          callbacks: {
+            label: function(ctx) { return "  " + ctx.dataset.label + ": " + fmt(ctx.parsed.y); }
+          }
+        })
+      },
+      scales: {
+        x: axisStyle,
+        y: {
+          ticks: Object.assign({}, axisStyle.ticks, {
+            callback: function(v) { return "$" + (v / 1000).toFixed(0) + "k"; }
+          }),
+          grid: axisStyle.grid
+        }
+      }
+    }
+  });
+
+  barChartInst = new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: "Denver CPI",
+          data: [],
+          backgroundColor: "rgba(198,12,48,0.55)",
+          borderRadius: 3
+        },
+        {
+          label: "CSU Raise",
+          data: [],
+          backgroundColor: "rgba(100,116,139,0.70)",
+          borderRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 200 },
+      plugins: {
+        legend: {
+          labels: { color: "#374151", font: { family: "Arial, sans-serif", size: 11 }, boxWidth: 20, padding: 16 }
+        },
+        tooltip: Object.assign({}, tooltipStyle, {
+          callbacks: {
+            label: function(ctx) { return "  " + ctx.dataset.label + ": " + ctx.parsed.y.toFixed(2) + "%"; }
+          }
+        })
+      },
+      scales: {
+        x: axisStyle,
+        y: {
+          ticks: Object.assign({}, axisStyle.ticks, {
+            callback: function(v) { return v.toFixed(1) + "%"; }
+          }),
+          grid: axisStyle.grid
+        }
+      }
+    }
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  var startSalary  = Number(document.getElementById("salarySlider").value);
+  var startYearIdx = Number(document.getElementById("yearSlider").value);
+  var startEntry   = TIMELINE[startYearIdx];
+  var rows         = buildData(startSalary, startYearIdx);
+
+  document.getElementById("salaryDisplay").textContent = fmt(startSalary);
+  document.getElementById("yearDisplay").textContent   = startEntry.label.replace("FY", "");
+
+  var finalCSU = rows[rows.length - 1].csuSalary;
+  var finalInf = rows[rows.length - 1].infSalary;
+  var totalGap = finalCSU - finalInf;
+  var csuCum   = (finalCSU / startSalary - 1) * 100;
+  var infCum   = (finalInf / startSalary - 1) * 100;
+  var realD    = csuCum - infCum;
+
+  var GREEN   = "#1a7a3c";
+  var RED     = "#c60c30";
+  var NEUTRAL = "#1a1a1a";
+
+  // Cards
+  var cardData = [
+    {
+      label: "Likely Salary Today",
+      value: fmt(finalCSU),
+      sub:   "+" + csuCum.toFixed(1) + "% cumulative",
+      color: NEUTRAL
+    },
+    {
+      label: "Inflation Equivalent Salary Today",
+      value: fmt(finalInf),
+      sub:   "+" + infCum.toFixed(1) + "% cumulative",
+      color: NEUTRAL
+    },
+    {
+      label: "Real Value Change",
+      value: fmt(Math.abs(totalGap)),
+      sub:   totalGap >= 0 ? "Ahead of inflation" : "Behind inflation",
+      color: totalGap >= 0 ? GREEN : RED
+    },
+    {
+      label: "Real Percent Change",
+      value: (realD >= 0 ? "+" : "") + realD.toFixed(1) + "%",
+      sub:   "",
+      color: realD >= 0 ? GREEN : RED
+    }
+  ];
+  document.getElementById("cards").innerHTML = cardData.map(function(c) {
+    return '<div class="card">' +
+      '<div class="card-label">' + c.label + '</div>' +
+      '<div class="card-value" style="color:' + c.color + '">' + c.value + '</div>' +
+      (c.sub ? '<div class="card-sub">' + c.sub + '</div>' : '') +
+      '</div>';
+  }).join("");
+
+  // Line chart
+  var lineLabels = [];
+  var csuVals    = [];
+  var infVals    = [];
+  for (var i = 0; i < rows.length; i++) {
+    lineLabels.push(rows[i].fy);
+    csuVals.push(rows[i].csuSalary);
+    infVals.push(rows[i].infSalary);
+  }
+
+  var allVals = csuVals.concat(infVals);
+  var yMin = Math.floor(Math.min.apply(null, allVals) * 0.97 / 1000) * 1000;
+  var yMax = Math.ceil( Math.max.apply(null, allVals) * 1.02 / 1000) * 1000;
+
+  lineChartInst.data.labels           = lineLabels;
+  lineChartInst.data.datasets[0].data = csuVals;
+  lineChartInst.data.datasets[1].data = infVals;
+  lineChartInst.options.scales.y.min  = yMin;
+  lineChartInst.options.scales.y.max  = yMax;
+  lineChartInst.update();
+
+  // Bar chart — skip start year, strip FY prefix from labels
+  var barLabels = [];
+  var cpiPcts   = [];
+  var csuPcts   = [];
+  for (var j = 0; j < rows.length; j++) {
+    if (rows[j].isStartYear) continue;
+    barLabels.push(rows[j].fy.replace("FY", ""));
+    cpiPcts.push(parseFloat((rows[j].cpiRate * 100).toFixed(3)));
+    csuPcts.push(parseFloat((rows[j].csuRate * 100).toFixed(3)));
+  }
+  barChartInst.data.labels           = barLabels;
+  barChartInst.data.datasets[0].data = cpiPcts;
+  barChartInst.data.datasets[1].data = csuPcts;
+  barChartInst.update();
+
+  // Table
+  var html = "";
+  for (var k = 0; k < rows.length; k++) {
+    var row     = rows[k];
+    var diff    = row.csuRate - row.cpiRate;
+    var diffCol = diff    >= 0 ? GREEN : RED;
+    var gapCol  = row.gap >= 0 ? GREEN : RED;
+    var csuRateCell = row.isStartYear ? "\u2014" : pct(row.csuRate);
+    var cpiRateCell = row.isStartYear ? "\u2014" : pct(row.cpiRate);
+    var deltaCell   = row.isStartYear ? "\u2014" : pp(diff);
+    html +=
+      "<tr>" +
+      "<td style='font-weight:600;color:#374151'>" + row.label + "</td>" +
+      "<td style='color:#6b7280'>" + csuRateCell + "</td>" +
+      "<td style='color:#6b7280'>" + cpiRateCell + "</td>" +
+      "<td style='color:" + diffCol + ";font-weight:600'>" + deltaCell + "</td>" +
+      "<td style='color:#374151'>" + fmt(row.csuSalary) + "</td>" +
+      "<td style='color:#374151'>" + fmt(row.infSalary) + "</td>" +
+      "<td style='color:" + gapCol + ";font-weight:600'>" + (row.gap >= 0 ? "+" : "") + fmt(row.gap) + "</td>" +
+      "<td style='color:#9ca3af;font-size:10px;max-width:160px'>" + esc(row.note) + "</td>" +
+      "</tr>";
+  }
+  document.getElementById("tableBody").innerHTML = html;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", function() {
+  initCharts();
+  render();
+  document.getElementById("salarySlider").addEventListener("input", render);
+  document.getElementById("yearSlider").addEventListener("input", render);
+});
+</script>
+</body>
+</html>
